@@ -212,6 +212,11 @@ copy predate the claim fixes; the app's wording is authoritative).
   "selected / now" only — never a health status. Signal is purple #7E22CE and trace teal #115E59
   (1.40.1) so every pair stays ≥ 25 ΔE apart for every colour vision (`cvd_test.dart`).
   Do not add the `shadcn_ui` package: it pulls in `http` and `extended_image` (network-capable).
+- **Photos** (phone review, 27 Nov 2026, patient 1.49.2): every crop of a bundled photo is lined up on its subject
+  with `Photos.align` (`Photos.focus` holds each photo's faces or pill box), never on the middle; an opening photo
+  (`PhotoHero`) is never taller than the photo at the screen width, so it is never stretched (`photo_crop_test.dart`).
+  A new photo must be 1080 × 807 and gets a focus point. `test/tool/photo_screens_test.dart --dart-define=SHOTS=<dir>`
+  renders every screen with a photo at the phone's size for a look before a release.
 - **Glass and touch** (user, 27 Nov 2026, patient 1.49.0): the page wash is apricot/lilac/sky (dark: umber/indigo/
   navy) and cards are see-through glass over it, Mac-style (`ShadCard`, `LT.glass`, `GlassRim`, shadow only outside
   the card). No live blur on cards (`glass_test.dart`): only bars and pills over scrolling content blur (`Glass`, under
@@ -256,11 +261,18 @@ with it. Windows ignores `chmod`: restrict new secret files with `icacls`.
 
 ### Project state (27 Nov 2026)
 
-Patient 1.49.1, doctor 1.9.1. All five packages: analysis clean; 613 tests passing (app 514, doctor
-28, server 57, protocol 8, integration 6), 1 skipped. Phone test, 27 Nov (Galaxy S25, driven over adb):
+Patient 1.49.2, doctor 1.9.1. All five packages: analysis clean; 621 tests passing (app 522, doctor
+28, server 57, protocol 8, integration 6), 4 skipped (three are the render tools, which run only with
+SHOTS set). Phone test, 27 Nov (Galaxy S25, driven over adb):
 1.49.0 ran every tab in both modes, the error shake, "All done" and the inner screens with no crash;
 its vibrations were requested but the phone's touch vibration was off. It found the Emergency ID
-allergy gap fixed in 1.49.1, which is installed there. Not yet tried on a phone: server features
+allergy gap fixed in 1.49.1. A photo review the same day found faces cut by centred crops and
+stretched opening photos, fixed in 1.49.2, which is installed there and was checked on the phone
+(Insights, Share, Reminders, Add record, the add-person pages). The phone's display is zoomed out
+(345 dpi: 501 points wide); its "Hide from screenshots" is on, so a capture needs it off
+first (Me), and back on after. It is the owner's own phone: capture only while LifeTrack is in
+front (`adb shell dumpsys window | grep mCurrentFocus`), since other apps hold private messages, and
+the screen locks after 60 s idle (`svc power stayon usb` while testing, `false` after). Not yet tried on a phone: server features
 (share, backup, IDs), camera and OCR, relock. Open for the user's decision: invariants #17 (`POST /v1/ids/reclaim` is
 a second way to move an ID) and #9 (`CriticalCheck` falls back to fixed wording) no longer match the
 code. `critical_values.dart` needs a doctor's review. Numbers in the report live in `STATS` in

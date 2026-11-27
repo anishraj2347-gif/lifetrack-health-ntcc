@@ -58,6 +58,19 @@ always goes up (Android refuses to install a lower one).
 
 ## Patient app
 
+### 1.49.2 (27 Nov 2026)
+- **Photos keep their faces in view.** Every crop of a bundled photo is lined up on where its subject is
+  (`Photos.focus`), not on the middle. Found in a phone review on the Galaxy S25: the short Insights banner cut the
+  couple off at the eyes, Share cut the doctor and the patient at the forehead, Reminders showed the plant pot instead
+  of the pill box, and the add-person pages trimmed the tops of heads.
+- **The lock and welcome photos are sharp.** They were stretched 1.3–1.45 times to fill a box taller than the photo
+  (807 pixels high). The photo is now never drawn taller than it is at the screen's width, and the words and buttons
+  sit at the foot of the screen, in reach.
+- Report pages are decoded at the size they are drawn on each phone, so the page being read is no longer soft on a
+  high-density screen, and a sideways page is sharp in its thumbnail too. A tall profile photo keeps the head: its
+  square now comes from the upper part, not the middle.
+- `test/tool/photo_screens_test.dart` renders every screen with a photo at a phone's size, for a visual check.
+
 ### 1.49.1 (27 Nov 2026)
 - **Fixed: the Emergency ID could say "Not filled in" while the allergy list named an allergy** — the card a paramedic
   reads. Found in the first phone test of the 1.43–1.49 builds, on the sample profile: sample records wrote the

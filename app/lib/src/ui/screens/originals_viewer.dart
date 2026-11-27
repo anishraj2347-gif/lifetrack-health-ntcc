@@ -80,7 +80,7 @@ class OriginalsStrip extends StatelessWidget {
                 child: Row(children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.memory(pages.first, width: 64, height: 88, fit: BoxFit.cover, cacheWidth: 200),
+                    child: Image.memory(pages.first, width: 64, height: 88, fit: BoxFit.cover, cacheHeight: (88 * MediaQuery.devicePixelRatioOf(context)).ceil()),
                   ),
                   SizedBox(width: 14),
                   Expanded(

@@ -36,6 +36,23 @@ void main() {
     expect(prepareProfilePhoto(Uint8List.fromList([1, 2, 3])), isNull, reason: 'not an image');
   });
 
+  test('a tall photo keeps the head: the square comes from its upper part', () {
+    // A half-length photo, 300 × 900, with the face at rows 220–300. A
+    // centred square (rows 300–600) cut it off; this keeps it.
+    final tall = img.Image(width: 300, height: 900);
+    img.fill(tall, color: img.ColorRgb8(255, 255, 255));
+    img.fillRect(tall, x1: 100, y1: 220, x2: 200, y2: 300, color: img.ColorRgb8(0, 0, 0));
+    final back = img.decodeJpg(prepareProfilePhoto(img.encodeJpg(tall))!)!;
+    final face = back.getPixel(160, 64); // rows 220–300 land at 21–107 of 320
+    expect(face.r, lessThan(60), reason: 'the face is in the square');
+    // A wide photo is still cut from the middle.
+    final wide = img.Image(width: 900, height: 300);
+    img.fill(wide, color: img.ColorRgb8(255, 255, 255));
+    img.fillRect(wide, x1: 400, y1: 100, x2: 500, y2: 200, color: img.ColorRgb8(0, 0, 0));
+    final mid = img.decodeJpg(prepareProfilePhoto(img.encodeJpg(wide))!)!;
+    expect(mid.getPixel(160, 160).r, lessThan(60), reason: 'the middle of a wide photo stays in the middle');
+  });
+
   test('stored sealed, kept across a restart, logged, in the backup, gone on erasure', () async {
     final bytes = InMemoryByteStore();
     final s = await phone(bytes, 1);

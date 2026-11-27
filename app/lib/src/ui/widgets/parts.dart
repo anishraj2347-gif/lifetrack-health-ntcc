@@ -1045,6 +1045,40 @@ abstract final class Photos {
   static const pills = 'assets/photos/pills.jpg';
   static const reading = 'assets/photos/reading.jpg';
   static const parent = 'assets/photos/parent.jpg';
+
+  /// Width over height of every photo above: each is 1080 × 807 pixels
+  /// (photo_crop_test checks the files).
+  static const aspect = 1080 / 807;
+
+  /// Where each photo's subject is (the faces, or the pill box), as
+  /// fractions of its width and height. A centred crop cut the faces off at
+  /// the eyes in the short Insights banner and hid the pill box on Reminders
+  /// (phone review, 27 Nov 2026), so every crop is lined up on this point.
+  static const focus = <String, Offset>{
+    family: Offset(0.53, 0.34),
+    report: Offset(0.5, 0.42),
+    doctor: Offset(0.5, 0.27),
+    pills: Offset(0.5, 0.66),
+    reading: Offset(0.52, 0.40),
+    parent: Offset(0.6, 0.25),
+  };
+
+  /// The alignment that keeps [asset]'s subject in view when the photo
+  /// covers a [box] (BoxFit.cover): as near the middle as the crop allows,
+  /// never past the photo's edge.
+  static Alignment align(String asset, Size box) {
+    if (box.isEmpty) return Alignment.center;
+    final at = focus[asset] ?? const Offset(0.5, 0.5);
+    // shown: the part of the photo's width or height left in view.
+    double along(double shown, double subject) {
+      if (shown >= 1) return 0;
+      final start = (subject - shown / 2).clamp(0.0, 1 - shown);
+      return start / (1 - shown) * 2 - 1;
+    }
+
+    final boxAspect = box.width / box.height;
+    return boxAspect >= aspect ? Alignment(0, along(aspect / boxAspect, at.dy)) : Alignment(along(boxAspect / aspect, at.dx), 0);
+  }
 }
 
 /// Decodes the photos the main pages show, at the size [PhotoBanner] draws
@@ -1068,38 +1102,59 @@ class PhotoHero extends StatelessWidget {
   final String asset;
   final List<Widget> children;
 
+  /// The photo's height on a screen of [box]: up to half of it, but never
+  /// taller than the photo is at that width. A taller box stretched the
+  /// 807-pixel-high photo by 1.3–1.45 on 1080-pixel-wide phones, and it
+  /// looked soft (phone review, 27 Nov 2026).
+  static double photoHeight(Size box) => math.min((box.height * 0.5).clamp(220.0, 480.0), box.width / Photos.aspect);
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
     final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: ColoredBox(
         color: LT.night,
         child: LayoutBuilder(builder: (context, box) {
-          final photo = (box.maxHeight * 0.5).clamp(220.0, 480.0);
-          return ListView(padding: EdgeInsets.zero, children: [
-            SizedBox(
-              height: photo,
-              child: Stack(fit: StackFit.expand, children: [
-                Appear(child: Image.asset(asset, fit: BoxFit.cover, excludeFromSemantics: true, cacheWidth: (width * dpr).round(), filterQuality: FilterQuality.medium)),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: [0, 0.22, 0.6, 1],
-                      colors: [Colors.black.withValues(alpha: 0.35), Colors.black.withValues(alpha: 0), LT.night.withValues(alpha: 0.35), LT.night],
+          final photo = photoHeight(box.biggest);
+          // The words and buttons sit at the foot of the screen, in reach,
+          // and scroll when the text is large.
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                SizedBox(
+                  height: photo,
+                  child: Stack(fit: StackFit.expand, children: [
+                    Appear(
+                      child: Image.asset(
+                        asset,
+                        fit: BoxFit.cover,
+                        alignment: Photos.align(asset, Size(box.maxWidth, photo)),
+                        excludeFromSemantics: true,
+                        cacheWidth: (box.maxWidth * dpr).round(),
+                        filterQuality: FilterQuality.medium,
+                      ),
                     ),
-                  ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: [0, 0.22, 0.6, 1],
+                          colors: [Colors.black.withValues(alpha: 0.35), Colors.black.withValues(alpha: 0), LT.night.withValues(alpha: 0.35), LT.night],
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+                SafeArea(
+                  top: false,
+                  child: Padding(padding: EdgeInsets.fromLTRB(24, 16, 24, 20), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children)),
                 ),
               ]),
             ),
-            SafeArea(
-              top: false,
-              child: Padding(padding: EdgeInsets.fromLTRB(24, 0, 24, 20), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children)),
-            ),
-          ]);
+          );
         }),
       ),
     );
@@ -1120,14 +1175,6 @@ class PhotoBanner extends StatelessWidget {
     final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2;
     final width = MediaQuery.sizeOf(context).width;
-    final image = Image.asset(
-      asset,
-      fit: BoxFit.cover,
-      excludeFromSemantics: true,
-      cacheWidth: (width * dpr).round().clamp(320, 1080),
-      color: LT.dark ? Colors.black.withValues(alpha: 0.18) : null,
-      colorBlendMode: LT.dark ? BlendMode.darken : null,
-    );
     return Padding(
       padding: margin,
       child: Appear(
@@ -1136,15 +1183,28 @@ class PhotoBanner extends StatelessWidget {
           child: SizedBox(
             height: height,
             width: double.infinity,
-            child: still
-                ? image
-                : TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 1.08, end: 1),
-                    duration: Duration(milliseconds: 1400),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, s, child) => Transform.scale(scale: s, child: child),
-                    child: image,
-                  ),
+            child: LayoutBuilder(builder: (context, box) {
+              final image = Image.asset(
+                asset,
+                fit: BoxFit.cover,
+                // A short banner shows a third of the photo: the part with
+                // the faces, not the middle.
+                alignment: Photos.align(asset, Size(box.maxWidth, height)),
+                excludeFromSemantics: true,
+                cacheWidth: (width * dpr).round().clamp(320, 1080),
+                color: LT.dark ? Colors.black.withValues(alpha: 0.18) : null,
+                colorBlendMode: LT.dark ? BlendMode.darken : null,
+              );
+              return still
+                  ? image
+                  : TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 1.08, end: 1),
+                      duration: Duration(milliseconds: 1400),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, s, child) => Transform.scale(scale: s, child: child),
+                      child: image,
+                    );
+            }),
           ),
         ),
       ),

@@ -460,7 +460,13 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
               children: [
                 for (final (i, p) in _pages.indexed)
                   Stack(fit: StackFit.expand, children: [
-                    ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(p, fit: BoxFit.cover, cacheWidth: 300)),
+                    // Decoded at the cell's height on this phone: sharp for an upright page or a sideways one.
+                    LayoutBuilder(
+                      builder: (context, cell) => ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(p, fit: BoxFit.cover, cacheHeight: (cell.maxHeight * MediaQuery.devicePixelRatioOf(context)).ceil()),
+                      ),
+                    ),
                     Positioned(left: 6, bottom: 6, child: Badge2('Page ${i + 1}')),
                     Positioned(
                       right: 4,
@@ -512,7 +518,7 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
                 child: Stack(fit: StackFit.expand, children: [
                   AnimatedSwitcher(
                     duration: Duration(milliseconds: 300),
-                    child: Image.memory(_pages[_readingPage.clamp(0, _pages.length - 1)], key: ValueKey(_readingPage), fit: BoxFit.cover, cacheWidth: 400, excludeFromSemantics: true),
+                    child: Image.memory(_pages[_readingPage.clamp(0, _pages.length - 1)], key: ValueKey(_readingPage), fit: BoxFit.cover, cacheHeight: (240 * MediaQuery.devicePixelRatioOf(context)).ceil(), excludeFromSemantics: true),
                   ),
                   ColoredBox(color: Colors.black.withValues(alpha: 0.12)),
                   ScanSweep(),
@@ -554,7 +560,7 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
                 label: 'Open page ${i + 1}',
                 child: GestureDetector(
                   onTap: () => _openPage(i),
-                  child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(p, width: 80, fit: BoxFit.cover, cacheWidth: 240)),
+                  child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(p, width: 80, fit: BoxFit.cover, cacheHeight: (120 * MediaQuery.devicePixelRatioOf(context)).ceil())),
                 ),
               ),
             ),

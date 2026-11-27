@@ -35,7 +35,16 @@ class AddPersonScaffold extends StatelessWidget {
           SizedBox(
             height: 240,
             child: Stack(fit: StackFit.expand, children: [
-              Appear(child: Image.asset(photo, fit: BoxFit.cover, excludeFromSemantics: true, cacheWidth: (width * dpr).round(), filterQuality: FilterQuality.medium)),
+              Appear(
+                child: Image.asset(
+                  photo,
+                  fit: BoxFit.cover,
+                  alignment: Photos.align(photo, Size(width, 240)),
+                  excludeFromSemantics: true,
+                  cacheWidth: (width * dpr).round(),
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

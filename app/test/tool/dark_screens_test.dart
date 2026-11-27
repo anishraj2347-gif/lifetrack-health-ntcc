@@ -8,7 +8,6 @@ import 'dart:ui' as ui;
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifetrack/src/app/app_services.dart';
 import 'package:lifetrack/src/crypto/key_derivation.dart';
@@ -20,28 +19,13 @@ import 'package:lifetrack/src/ui/lifetrack_app.dart';
 import 'package:lifetrack/src/ui/theme.dart';
 import 'package:lifetrack/src/vault/backup_vault.dart';
 
+import 'shot_fonts.dart';
+
 const out = String.fromEnvironment('SHOTS');
 
 void main() {
   testWidgets('dark screens', skip: out.isEmpty, (tester) async {
-    await tester.runAsync(() async {
-      for (final family in ['Poppins', 'Sora']) {
-        final loader = FontLoader(family);
-        for (final f in Directory('fonts').listSync().whereType<File>().where((f) => f.path.endsWith('.ttf') && f.uri.pathSegments.last.startsWith('$family-'))) {
-          loader.addFont(Future.value(ByteData.sublistView(f.readAsBytesSync())));
-        }
-        await loader.load();
-      }
-      // Icon fonts, so icons are drawn instead of empty boxes.
-      const lucide = 'packages/lucide_icons_flutter';
-      for (final (family, asset) in [
-        ('Lucide', 'assets/lucide.ttf'),
-        for (final w in [100, 200, 300, 400, 500, 600]) ('Lucide$w', 'assets/build_font/LucideVariable-w$w.ttf'),
-      ]) {
-        await (FontLoader('$lucide/$family')..addFont(rootBundle.load('$lucide/$asset'))).load();
-      }
-      await (FontLoader('MaterialIcons')..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
-    });
+    await tester.runAsync(loadShotFonts);
     late AppServices s;
     await tester.runAsync(() async {
       s = await AppServices.open(
