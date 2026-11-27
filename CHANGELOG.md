@@ -58,6 +58,16 @@ always goes up (Android refuses to install a lower one).
 
 ## Patient app
 
+### 1.49.1 (27 Nov 2026)
+- **Fixed: the Emergency ID could say "Not filled in" while the allergy list named an allergy** — the card a paramedic
+  reads. Found in the first phone test of the 1.43–1.49 builds, on the sample profile: sample records wrote the
+  allergy list without its card. Sample records and the sample family now fill the card too, and when the app opens,
+  an Emergency ID whose allergy line is empty takes the list's line (logged; a line the patient wrote is never
+  replaced).
+- **Records: the add button no longer covers a card at the top of the page.** There it is a button beside the name;
+  the floating "Add record" appears once that has scrolled away, and steps aside while you scroll down. Scrolling the
+  filter chips sideways no longer makes it jump.
+
 ### 1.49.0 (27 Nov 2026)
 - **Glass cards, as on a Mac.** The page behind every screen is a soft apricot, lilac and sky wash (umber, indigo and
   navy in dark mode) instead of beige, and every card is clearer glass over it: half see-through, so each card takes on

@@ -136,7 +136,9 @@ void main() {
     // The Insights view holds the grant and its reads, and nothing else.
     await tester.scrollUntilVisible(find.textContaining('Insights ·'), -300,
         scrollable: find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).last);
-    await tester.ensureVisible(find.textContaining('Insights ·'));
+    // Centre it: the list scrolls under the glass bar, where a tap at the
+    // very top lands on the bar (it did once the log grew by one entry).
+    await tester.runAsync(() => Scrollable.ensureVisible(tester.element(find.textContaining('Insights ·')), alignment: 0.5));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('Insights ·'), warnIfMissed: true);
     await tester.pumpAndSettle();

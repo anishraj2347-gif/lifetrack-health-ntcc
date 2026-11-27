@@ -254,11 +254,18 @@ release keystore is `app/android/lifetrack-release.jks` with `key.properties` (g
 the owner) — back it up off this PC; losing it means no update can install over a build signed
 with it. Windows ignores `chmod`: restrict new secret files with `icacls`.
 
-### Project state (2 Nov 2026)
+### Project state (27 Nov 2026)
 
-Patient 1.42.3, doctor 1.8.1. All five packages: analysis clean; 400 tests passing (app 319,
-doctor 20, server 47, protocol 8, integration 6), 1 skipped. Third security review done (server,
-consent, sharing, vault) and its fixes landed. Frame timing measured on the Galaxy S25
+Patient 1.49.1, doctor 1.9.1. All five packages: analysis clean; 613 tests passing (app 514, doctor
+28, server 57, protocol 8, integration 6), 1 skipped. Phone test, 27 Nov (Galaxy S25, driven over adb):
+1.49.0 ran every tab in both modes, the error shake, "All done" and the inner screens with no crash;
+its vibrations were requested but the phone's touch vibration was off. It found the Emergency ID
+allergy gap fixed in 1.49.1, which is installed there. Not yet tried on a phone: server features
+(share, backup, IDs), camera and OCR, relock. Open for the user's decision: invariants #17 (`POST /v1/ids/reclaim` is
+a second way to move an ID) and #9 (`CriticalCheck` falls back to fixed wording) no longer match the
+code. `critical_values.dart` needs a doctor's review. Numbers in the report live in `STATS` in
+`docs/report/build.js`; regenerate with `scripts/report_stats.sh`. Third security review done
+(server, consent, sharing, vault) and its fixes landed. Frame timing measured on the Galaxy S25
 (`docs/testing/results/`); the frame-timing test runs unattended with `flutter drive --profile
 --no-dds` (it sets up the sample family and taps Unlock; answer the fingerprint prompt by hand).
 When either app's version changes, bump `pubspec.yaml` **and** `app_version.dart` (a test checks

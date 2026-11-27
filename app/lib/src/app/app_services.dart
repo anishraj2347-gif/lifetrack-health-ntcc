@@ -258,6 +258,7 @@ class AppServices {
     if (!services.restoreInterrupted) {
       await services._settleOwner();
       await services._adoptCardAllergies();
+      await services._fillEmptyCardAllergies();
     }
     await services._loadPhotos();
     unawaited(services.refreshReminders());
@@ -756,6 +757,7 @@ class AppServices {
     final id = currentPatientId!;
     await repository.addAll(DemoData.records(id));
     await repository.saveProfile(id, DemoData.profile(clock()));
+    await _fillCardAllergies(id, 'sample allergies copied to the Emergency ID');
     await _saveDemoOriginals(id);
     await refreshReminders();
     await audit.append(AuditEntry(at: clock(), actorId: 'patient:$id', patientId: id, action: AuditAction.edit, detail: 'Sample records added for a demonstration'));
@@ -802,6 +804,7 @@ class AppServices {
         await repository.addVital(v);
       }
       if (m.emergency != null) await emergency.save(person.id, m.emergency!.editedAt(at));
+      await _fillCardAllergies(person.id, 'sample allergies copied to the Emergency ID');
       if (m.vaccinesUpTo != null) {
         final upTo = uipSchedule.indexWhere((d) => d.code == m.vaccinesUpTo);
         _vaccines[person.id] = {
@@ -925,6 +928,30 @@ class AppServices {
     }
   }
 
+  /// The other way round: a list written without its card (sample data, or
+  /// data from before the two were kept in step) left the Emergency ID saying
+  /// "Not filled in" while the list named an allergy — the card a paramedic
+  /// reads (phone test, 27 Nov 2026). Only ever fills an empty line.
+  Future<void> _fillEmptyCardAllergies() async {
+    for (final p in repository.patients) {
+      await _fillCardAllergies(p.id, 'allergies copied from the allergy list to the Emergency ID');
+    }
+  }
+
+  /// Puts the allergy list's line on [patientId]'s Emergency ID if the
+  /// card's line is empty, logged (#13); a line the patient wrote is never
+  /// replaced. Linked family who see the card hear of it.
+  Future<void> _fillCardAllergies(String patientId, String detail) async {
+    final line = repository.profileOf(patientId).cardLine(EmergencyCard.maxFieldLength);
+    if (line.isEmpty) return;
+    final card = await emergency.load(patientId);
+    if (card.allergies.trim().isNotEmpty) return;
+    final at = clock();
+    await emergency.save(patientId, card.withAllergies(line, at));
+    await audit.append(AuditEntry(at: at, actorId: Actors.patient(selfPatientId ?? patientId), patientId: patientId, action: AuditAction.edit, dataClass: DataClass.emergencyCard, detail: detail));
+    await _tellLinkedFamily(patientId);
+  }
+
   // ---- profile -----------------------------------------------------------
 
   String? get currentPatientId => settings['currentPatientId'] as String?;
@@ -944,6 +971,7 @@ class AppServices {
     if (demo && repository.recordsOf(id).isEmpty) {
       await repository.addAll(DemoData.records(id));
       await repository.saveProfile(id, DemoData.profile(clock()));
+      await _fillCardAllergies(id, 'sample allergies copied to the Emergency ID');
       await _saveDemoOriginals(id);
     }
     settings['currentPatientId'] = id;

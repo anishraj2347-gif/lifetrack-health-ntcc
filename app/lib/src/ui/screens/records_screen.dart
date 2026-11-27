@@ -39,7 +39,17 @@ class RecordsScreen extends StatefulWidget {
 class _RecordsScreenState extends State<RecordsScreen> {
   RecordKind? _filter;
   String _query = '';
-  bool _fabHidden = false;
+
+  /// At the top the masthead holds the add button, clear of the records (the
+  /// floating one sat over a card's title there — phone test, 27 Nov 2026).
+  /// The floating one appears once the masthead has scrolled away.
+  bool _fabHidden = true;
+  static const _mastheadGone = 56.0;
+
+  Future<void> _add() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AddRecordScreen()));
+    if (mounted) AppScope.changed(context);
+  }
 
   /// The test in the big trend card: (profile, analyte|unit). Null shows the
   /// most recently measured.
@@ -119,17 +129,31 @@ class _RecordsScreenState extends State<RecordsScreen> {
               }),
             ...children,
           ];
-    // The list runs under the glass tab bar; the button floats above it and
-    // steps aside while you scroll down through the records.
+    // The list runs under the glass tab bar; the floating button sits above
+    // it once the masthead's own has scrolled away, and steps aside while you
+    // scroll down through the records.
     return Stack(children: [
-      NotificationListener<UserScrollNotification>(
+      NotificationListener<ScrollNotification>(
         onNotification: (n) {
-          final hide = n.direction == ScrollDirection.reverse ? true : n.direction == ScrollDirection.forward ? false : _fabHidden;
+          // The list itself, not the sideways strip of filters inside it.
+          if (n.depth != 0 || n.metrics.axis != Axis.vertical) return false;
+          var hide = _fabHidden;
+          if (n is UserScrollNotification) {
+            if (n.direction == ScrollDirection.reverse) hide = true;
+            if (n.direction == ScrollDirection.forward) hide = false;
+          }
+          if (n.metrics.pixels < _mastheadGone) hide = true;
           if (hide != _fabHidden) setState(() => _fabHidden = hide);
           return false;
         },
         child: CustomScrollView(slivers: [
-          SliverToBoxAdapter(child: Masthead(eyebrow: all.isEmpty ? 'Records' : '${all.length} record${all.length == 1 ? '' : 's'}', title: name)),
+          SliverToBoxAdapter(
+            child: Masthead(
+              eyebrow: all.isEmpty ? 'Records' : '${all.length} record${all.length == 1 ? '' : 's'}',
+              title: name,
+              trailing: IntrinsicWidth(child: SlabButton('Add', icon: LucideIcons.plus, onPressed: _add)),
+            ),
+          ),
           SliverToBoxAdapter(child: AuthorityBanner()),
           // Search and filters stay at hand on a strip of glass while the
           // records scroll beneath it.
@@ -147,10 +171,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
       Positioned(
         right: 16,
         bottom: mq.padding.bottom + 12,
-        child: GlassFab(label: 'Add record', icon: LucideIcons.plus, hidden: _fabHidden, onPressed: () async {
-          await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AddRecordScreen()));
-          if (context.mounted) AppScope.changed(context);
-        }),
+        child: GlassFab(label: 'Add record', icon: LucideIcons.plus, hidden: _fabHidden, onPressed: _add),
       ),
     ]);
   }

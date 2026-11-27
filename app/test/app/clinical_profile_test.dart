@@ -109,6 +109,32 @@ void main() {
       expect(again.auditEntries().where((e) => (e.detail ?? '').contains('copied from the Emergency ID')), hasLength(1));
     });
 
+    test('sample records put the sample allergy on the Emergency ID too (phone test, 27 Nov 2026)', () async {
+      final s = await open();
+      await s.addSampleRecords();
+      expect(s.clinicalProfile().allergies.map((a) => a.substance), ['Penicillin']);
+      expect((await s.emergency.load(s.selfPatientId!)).allergies, 'Penicillin');
+    });
+
+    test('a list whose card was left empty fills the card on next open, logged; a line the patient wrote is kept', () async {
+      final bytes = InMemoryByteStore();
+      final s = await open(bytes);
+      final me = s.selfPatientId!;
+      // Written the old way: the list without its card.
+      await s.repository.saveProfile(me, const ClinicalProfile(allergies: [penicillin]));
+      expect((await s.emergency.load(me)).allergies, isEmpty);
+      final again = await open(bytes);
+      expect((await again.emergency.load(me)).allergies, 'Penicillin');
+      final logged = again.auditEntries().where((e) => e.detail == 'allergies copied from the allergy list to the Emergency ID');
+      expect(logged, hasLength(1));
+      expect(logged.single.dataClass, DataClass.emergencyCard);
+      // A line the patient wrote on the card is never replaced from the list.
+      await again.emergency.save(me, const EmergencyCard(allergies: 'Latex'));
+      await again.repository.saveProfile(me, const ClinicalProfile(allergies: [penicillin]));
+      final third = await open(bytes);
+      expect((await third.emergency.load(me)).allergies, 'Latex');
+    });
+
     test('stored and read back', () {
       final p = ClinicalProfile.fromJson(const ClinicalProfile(noneKnown: true).toJson());
       expect(p.noneKnown, isTrue);
