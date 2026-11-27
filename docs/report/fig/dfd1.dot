@@ -1,0 +1,59 @@
+// Level 1 DFD. Laid out by hand (render with neato: positions are pinned, in
+// inches) so it fits a portrait page with readable labels:
+//   neato -Gdpi=200 -Tpng dfd1.dot -o dfd1.png
+digraph G {
+  bgcolor=white; fontname="Helvetica"; splines=true; outputorder=edgesfirst;
+  node[fontname="Helvetica",fontsize=10]; edge[fontname="Helvetica",fontsize=8.5,color="#555555",fontcolor="#333333",arrowsize=0.7];
+
+  // External entities
+  node[shape=box,style=filled,fillcolor="#F4F3EF",width=1.35,height=0.5];
+  patient[label="Patient /\nhead of family",pos="3.55,8.1!"];
+  family[label="Linked family\nmember's phone",pos="6.55,8.1!"];
+  admin[label="Registry\nadministrator",pos="7.35,2.45!"];
+  doctor[label="Registered\ndoctor",pos="3.2,0.2!"];
+
+  // Processes
+  node[shape=box,style="rounded,filled",fillcolor="#E8F5B8",width=1.6,height=0.62];
+  p1[label="1.0 Capture records\n(type, scan, OCR)",pos="0.85,6.5!"];
+  p2[label="2.0 Check and explain\n(insights, danger check)",pos="2.75,6.5!"];
+  p3[label="3.0 Manage consent\n(grant, change, end)",pos="4.65,6.5!"];
+  p6[label="6.0 Remind and alert\n(reminders, Emergency ID)",pos="6.55,6.5!"];
+  p5[label="5.0 Back up\nand restore",pos="0.85,3.3!"];
+  p4[label="4.0 Share with\na doctor",pos="3.2,3.3!"];
+  p7[label="7.0 Verify doctors\n(registry)",pos="5.4,3.3!"];
+
+  // Data stores: on the phone (D1–D3) and on the server (D4–D6)
+  node[shape=record,style=filled,fillcolor="#FFFFFF",width=0,height=0.4];
+  d1[label="D1 | Sealed records",pos="1.6,4.9!"];
+  d2[label="D2 | Consent grants",pos="4.4,4.9!"];
+  d3[label="D3 | Audit log",pos="6.55,4.9!"];
+  d5[label="D5 | Backup vault",pos="0.85,1.75!"];
+  d4[label="D4 | Relay mailboxes",pos="3.2,1.75!"];
+  d6[label="D6 | Doctor registry",pos="6.2,1.75!"];
+
+  patient -> p1 [label="records, photos,\nPDFs, vitals"];
+  p2 -> patient [label="findings,\nurgent prompt"];
+  patient -> p3 [label="consent\ndecisions"];
+  p6 -> patient [label="reminders,\nEmergency ID"];
+  p6 -> family [label="card, medicines\n(only if ticked)"];
+
+  p1 -> d1 [label="sealed record\n+ original"];
+  d1 -> p2 [label="records\n(under a grant)"];
+  d1 -> p6 [label="doses,\ncard fields"];
+  p3 -> d2 [label="grant"];
+  p3 -> d3 [label="audit entry"];
+
+  d1 -> p4 [label="records in scope"];
+  d2 -> p4 [label="live grant"];
+  p4 -> d3 [label="logged before\nit leaves"];
+  d1 -> p5 [label="all profiles"];
+  p5 -> d5 [dir=both,label="ciphertext only\n(back up, restore)"];
+
+  p4 -> d4 [label="sealed to the\ndoctor's key"];
+  d4 -> doctor [label="time-limited\nshare"];
+  doctor -> d4 [label="prescription,\nrequest"];
+  doctor -> p7 [label="enrolment"];
+  admin -> p7 [label="approve /\nrevoke"];
+  p7 -> d6 [label="signed\ncertificate"];
+  d6 -> p4 [label="certificate,\nstatus"];
+}

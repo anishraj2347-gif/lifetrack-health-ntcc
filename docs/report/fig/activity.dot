@@ -1,0 +1,43 @@
+digraph G {
+  rankdir=TB; bgcolor=white; fontname="Helvetica"; nodesep=0.4; ranksep=0.2;
+  node[fontname="Helvetica",fontsize=13]; edge[fontname="Helvetica",fontsize=11,color="#555555",arrowsize=0.7];
+
+  start[label="",shape=circle,style=filled,fillcolor="#111111",width=0.22,fixedsize=true];
+  node[shape=box,style="rounded,filled",fillcolor="#E8F5B8",width=3.1];
+  a1[label="Patient opens Share and scans\nthe code on the doctor's screen"];
+  a3[label="Ask the registry whether the doctor\nis still approved with the same keys"];
+  a4[label="Show the doctor's name and\nregistration number"];
+  a5[label="Patient chooses the level\n(Summary, All reports, ...) and the time\n(1 hour by default, up to 2 days)"];
+  a6[label="Store the grant; seal the records in scope\nto the doctor's key (X25519 + AES-256-GCM)"];
+  a7[label="Write the audit entry\n(before anything leaves the phone)"];
+  a8[label="Deposit the sealed bundle\nin the doctor's relay mailbox"];
+  a9[label="Doctor's app picks it up and opens it;\naccess closes at the end time"];
+  a10[label="Relay deletes the bundle\non pickup or at expiry"];
+  x1[label="Refuse: not a verified doctor",fillcolor="#F4F3EF"];
+  x2[label="End the grant;\nlog \"share not delivered\"",fillcolor="#F4F3EF"];
+
+  node[shape=diamond,style=filled,fillcolor="#FFFFFF",width=2.4,height=0.75];
+  d1[label="Certificate signed\nby the registry?"];
+  d2[label="Still approved?"];
+  d3[label="Patient confirms?"];
+  d4[label="Delivered?"];
+
+  node[shape=doublecircle,style=filled,fillcolor="#111111",label="",width=0.2,height=0.2,fixedsize=true];
+  end1; end2; end3; end4;
+
+  start -> a1 -> d1;
+  d1 -> a3 [label=" yes"];
+  d1 -> x1 [label=" no"];
+  a3 -> d2;
+  d2 -> a4 [label=" yes, or offline"];
+  d2 -> x1 [label=" revoked"];
+  x1 -> end1;
+  a4 -> a5 -> d3;
+  d3 -> a6 [label=" yes"];
+  d3 -> end2 [label=" cancel"];
+  a6 -> a7 -> a8 -> d4;
+  d4 -> a9 [label=" yes"];
+  d4 -> x2 [label=" no"];
+  x2 -> end3;
+  a9 -> a10 -> end4;
+}
