@@ -262,7 +262,7 @@ with it. Windows ignores `chmod`: restrict new secret files with `icacls`.
 ### Project state (27 Nov 2026)
 
 Patient 1.49.2, doctor 1.9.1. All five packages: analysis clean; 621 tests passing (app 522, doctor
-28, server 57, protocol 8, integration 6), 4 skipped (three are the render tools, which run only with
+28, server 57, protocol 8, integration 6), 5 skipped (the render tools, which run only with
 SHOTS set). Phone test, 27 Nov (Galaxy S25, driven over adb):
 1.49.0 ran every tab in both modes, the error shake, "All done" and the inner screens with no crash;
 its vibrations were requested but the phone's touch vibration was off. It found the Emergency ID
@@ -276,7 +276,16 @@ the screen locks after 60 s idle (`svc power stayon usb` while testing, `false` 
 (share, backup, IDs), camera and OCR, relock. Open for the user's decision: invariants #17 (`POST /v1/ids/reclaim` is
 a second way to move an ID) and #9 (`CriticalCheck` falls back to fixed wording) no longer match the
 code. `critical_values.dart` needs a doctor's review. Numbers in the report live in `STATS` in
-`docs/report/build.js`; regenerate with `scripts/report_stats.sh`. Third security review done
+`docs/report/build.js`; regenerate with `scripts/report_stats.sh`. Since 27 Nov the report follows
+the university's NTCC templates (D:/ntcc/FOLDER: eight fixed chapters, certificates, contents and
+lists as tables, LNCS references; `make_pdf.sh` needs LibreOffice and PyMuPDF) and keeps its
+AI-assistance acknowledgement; its patient-app screenshots are rendered by
+`app/test/tool/report_screens_test.dart`. The evaluation deck (15 slides at most, in the notice's
+order, on the template's Amity header) is `docs/slides/build.js` (pptxgenjs; icons from
+`make_icons.py`). External evaluation: 8 Dec 2026. GitHub (27 Nov 2026): the public repo is
+`anishraj2347-gif/lifetrack-health-ntcc` (remote `origin`, a full copy of every branch; `main` is
+the latest code); the older `anishraj2347-gif/lifetrack-health` is private (remote `old-private`).
+The GitHub CLI is at `%LOCALAPPDATA%\Programs\GitHubCLI\bin\gh.exe`. Third security review done
 (server, consent, sharing, vault) and its fixes landed. Frame timing measured on the Galaxy S25
 (`docs/testing/results/`); the frame-timing test runs unattended with `flutter drive --profile
 --no-dds` (it sets up the sample family and taps Unlock; answer the fingerprint prompt by hand).

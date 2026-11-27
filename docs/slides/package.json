@@ -1,0 +1,7 @@
+{
+  "name": "lifetrack-ntcc-slides",
+  "private": true,
+  "description": "Builds the NTCC evaluation slides (LifeTrack_Health_NTCC_Slides.pptx) on the university's template header",
+  "scripts": { "build": "node build.js" },
+  "dependencies": { "pptxgenjs": "^3.12.0" }
+}
