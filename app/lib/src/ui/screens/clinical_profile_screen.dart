@@ -3,7 +3,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../model/clinical_profile.dart';
 import '../app_scope.dart';
-import '../theme.dart';
 import '../widgets/parts.dart';
 
 /// Allergies, conditions and family illnesses for the profile on screen: the
@@ -209,7 +208,7 @@ class _ClinicalProfileScreenState extends State<ClinicalProfileScreen> {
               ]),
             ),
           _add('Add a family illness', () => _family.add(_FamilyRow())),
-          if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+          if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 20, 16, 28),
             child: SlabButton(_saving ? 'Saving…' : 'Save', icon: LucideIcons.check, onPressed: _saving ? null : _save),

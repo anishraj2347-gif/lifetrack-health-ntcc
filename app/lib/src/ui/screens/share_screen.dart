@@ -185,7 +185,7 @@ class ShareScreen extends StatelessWidget {
                       msg.showSnackBar(SnackBar(content: Text('Access ended.')));
                     }
                   } on Object catch (e) {
-                    msg.showSnackBar(SnackBar(content: Text('Access was ended on this phone, but something went wrong. ${plainError(e)}')));
+                    showProblem(msg, 'Access was ended on this phone, but something went wrong. ${plainError(e)}');
                   }
                   if (context.mounted) AppScope.changed(context);
                 }),
@@ -221,7 +221,7 @@ class ShareScreen extends StatelessWidget {
       ));
       if (context.mounted) AppScope.changed(context);
     } on Object catch (e) {
-      msg.showSnackBar(SnackBar(content: Text('Could not check. ${plainError(e)}')));
+      showProblem(msg, 'Could not check. ${plainError(e)}');
     }
   }
 
@@ -254,7 +254,7 @@ class ShareScreen extends StatelessWidget {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${r.doctor.name} can now see it until ${dateTime(r.grant.expiresAt)}.')));
     } on Object catch (e) {
       // The old share stays as it was until a new one has gone.
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Time not changed. Access stays as it was, until ${dateTime(g.expiresAt)}. ${plainError(e)}')));
+      if (context.mounted) showProblem(ScaffoldMessenger.of(context), 'Time not changed. Access stays as it was, until ${dateTime(g.expiresAt)}. ${plainError(e)}');
     }
     if (context.mounted) AppScope.changed(context);
   }
@@ -338,7 +338,7 @@ class _Requests extends StatelessWidget {
                         await s.declineRequest(p);
                         messenger.showSnackBar(SnackBar(content: Text('Declined. ${p.doctor.name} has been told.')));
                       } on Object {
-                        messenger.showSnackBar(SnackBar(content: Text('Declined here, but the doctor could not be told yet.')));
+                        showProblem(messenger, 'Declined here, but the doctor could not be told yet.');
                       }
                       if (context.mounted) AppScope.changed(context);
                     }),

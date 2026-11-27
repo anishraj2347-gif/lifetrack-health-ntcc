@@ -169,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       );
 
-  Widget _errorLine() => _error == null ? SizedBox.shrink() : Padding(padding: EdgeInsets.fromLTRB(20, 10, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal)));
+  Widget _errorLine() => _error == null ? SizedBox.shrink() : ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 10, 20, 0));
 
   /// Real builds: the profile comes from DigiLocker (Aadhaar), not a form.
   Widget _verifiedStart() => AddPersonScaffold(
@@ -289,7 +289,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             padding: EdgeInsets.fromLTRB(8, 4, 12, 4),
             onTap: () => setState(() => _understood = !_understood),
             child: Row(children: [
-              Checkbox(value: _understood, onChanged: (v) => setState(() => _understood = v ?? false)),
+              Checkbox(value: _understood, onChanged: withTick((v) => setState(() => _understood = v ?? false))),
               Expanded(child: Text('I understand my records are only on this phone until I turn on backup.', style: TextStyle(fontSize: 14, color: LT.ink))),
             ]),
           ),

@@ -84,7 +84,7 @@ class _AddFamilyScreenState extends State<AddFamilyScreen> {
         ),
       );
 
-  Widget _errorLine() => _error == null ? SizedBox.shrink() : Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal)));
+  Widget _errorLine() => _error == null ? SizedBox.shrink() : ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0));
 
   /// Required-verification path: the person comes from DigiLocker.
   Widget _verifiedDetails() {
@@ -250,7 +250,7 @@ class _AddFamilyScreenState extends State<AddFamilyScreen> {
                 onTap: () => setState(() => _parent = !_parent),
                 padding: EdgeInsets.fromLTRB(8, 4, 12, 4),
                 child: Row(children: [
-                  Checkbox(value: _parent, onChanged: (v) => setState(() => _parent = v ?? false)),
+                  Checkbox(value: _parent, onChanged: withTick((v) => setState(() => _parent = v ?? false))),
                   Expanded(child: Text('I am this child\'s parent.', style: TextStyle(fontSize: 14))),
                 ]),
               ),
@@ -283,7 +283,7 @@ class _AddFamilyScreenState extends State<AddFamilyScreen> {
         child: TextField(controller: _typed, textCapitalization: TextCapitalization.words, style: TextStyle(fontSize: 18), onChanged: (_) => setState(() {})),
       ),
       Note('This is recorded as consent given in person on this phone. A one-time code to your own number is not connected yet.', icon: LucideIcons.info),
-      if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+      if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
         child: SlabButton('I agree', icon: LucideIcons.check, onPressed: _typed.text.trim().isEmpty ? null : _save),

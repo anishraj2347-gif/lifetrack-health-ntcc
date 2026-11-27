@@ -135,7 +135,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       await f.writeAsBytes(img!.buffer.asUint8List(), flush: true);
       await SharePlus.instance.share(ShareParams(files: [XFile(f.path, mimeType: 'image/png')], text: 'Emergency ID — $name. Scan with any phone camera.'));
     } on Object catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Could not save. ${plainError(e)}')));
+      showProblem(messenger, 'Could not save. ${plainError(e)}');
     } finally {
       await deleteQuietly('${(await getTemporaryDirectory()).path}/emergency-id.png');
     }
@@ -154,7 +154,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
               final ok = await launchUrl(Uri(scheme: 'tel', path: c.contactPhone.replaceAll(RegExp(r'[^0-9+]'), '')));
-              if (!ok) messenger.showSnackBar(SnackBar(content: Text('Could not open the dialer. The number is ${c.contactPhone}.')));
+              if (!ok) showProblem(messenger, 'Could not open the dialer. The number is ${c.contactPhone}.');
             },
           ),
         ),

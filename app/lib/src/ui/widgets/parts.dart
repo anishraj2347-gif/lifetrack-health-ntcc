@@ -1,12 +1,19 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui show Image;
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../haptics.dart';
 import '../theme.dart';
+
+// Every screen imports this file: the vibrations and the contrast marker come with it.
+export '../haptics.dart';
+export '../theme.dart' show GlassTone;
 
 /// Page header: muted label, title, optional trailing, bottom border.
 class Masthead extends StatelessWidget {
@@ -122,7 +129,11 @@ class SlabButton extends StatelessWidget {
             onTap: onPressed == null
                 ? null
                 : () {
-                    v == ButtonVariant.primary || v == ButtonVariant.destructive ? HapticFeedback.mediumImpact() : HapticFeedback.selectionClick();
+                    if (v == ButtonVariant.primary || v == ButtonVariant.destructive) {
+                      Haptics.press();
+                    } else {
+                      Haptics.tap();
+                    }
                     onPressed!();
                   },
             splashColor: inkOn(bg).splash,
@@ -191,7 +202,7 @@ class Chip2 extends StatelessWidget {
               onTap: onTap == null
                   ? null
                   : () {
-                      HapticFeedback.selectionClick();
+                      Haptics.select();
                       onTap!();
                     },
               customBorder: StadiumBorder(),
@@ -263,7 +274,7 @@ class Segmented<T> extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
                     if (j == i) return;
-                    HapticFeedback.selectionClick();
+                    Haptics.select();
                     onChanged(v);
                   },
                   child: GlassTone(
@@ -348,52 +359,76 @@ class ShadCard extends StatelessWidget {
 
   Widget _card() => _color == null ? _glassCard() : _solidCard();
 
-  /// The everyday card: frosted, see-through to the colour wash, bright rim,
-  /// a sheen across the top and a soft shadow.
+  /// The sheen across the top-left of a glass card, over [LT.glass] of card.
+  static double get _sheen => LT.dark ? 0.08 : 0.40;
+
+  /// The solid colour text on a glass card is judged against: the card over
+  /// the wash's worst point, where it is least readable — the plain middle
+  /// in light mode (dark text), the sheen in dark mode (light text).
+  static Color get glassTone {
+    final card = Color.alphaBlend(LT.surface.withValues(alpha: LT.glass), LT.washExtreme);
+    return LT.dark ? Color.alphaBlend(Colors.white.withValues(alpha: _sheen), card) : card;
+  }
+
+  /// The everyday card, as glass in the Mac's manner: half see-through, so
+  /// each card takes on the colour of the wash behind it as it scrolls; a
+  /// sheen across the top-left; a bright rim where light catches the edge;
+  /// a lifted shadow with a crisp contact edge. No live blur: the wash is
+  /// already soft, so blurring it would cost a GPU pass per card on every
+  /// frame and look the same (glass_test). The bars over scrolling content
+  /// are the glass that blurs.
   Widget _glassCard() {
-    final tone = Color.alphaBlend(LT.surface.withValues(alpha: 0.64), LT.washExtreme);
     final radius = BorderRadius.circular(LT.radiusLg);
-    // A BoxDecoration with a border radius, not a ShapeDecoration: the
-    // engine draws a rounded-rect shadow on its fast path, while a shape's
-    // shadow is a blurred general path — on every card, every frame.
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        // The rim was once painted twice (decoration and Material both); one
-        // pass at the combined strength, 1 − (1 − a)², keeps its look.
-        border: Border.all(color: borderColor ?? Colors.white.withValues(alpha: LT.dark ? 0.17 : 0.94), width: borderColor == null ? 1 : 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: LT.dark ? 0.30 : 0.07), blurRadius: 24, offset: Offset(0, 10))],
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [
-          Color.alphaBlend(Colors.white.withValues(alpha: LT.dark ? 0.05 : 0.35), LT.surface.withValues(alpha: 0.64)),
-          LT.surface.withValues(alpha: 0.64),
-          LT.surface.withValues(alpha: 0.72),
-        ], stops: const [0, 0.5, 1]),
-      ),
-      child: GlassTone(
-        tone: tone,
-        child: _inked(
-          radius,
-          LT.surface,
-          LT.surface.computeLuminance() < 0.2
-              ? OnDark(child: DefaultTextStyle.merge(style: TextStyle(color: LT.onDark), child: IconTheme.merge(data: IconThemeData(color: LT.onDarkMuted), child: child)))
-              : child,
+    return CustomPaint(
+      painter: _ShadowOutside(LT.radiusLg, [
+        BoxShadow(color: Colors.black.withValues(alpha: LT.dark ? 0.32 : 0.065), blurRadius: 32, offset: Offset(0, 10)),
+        BoxShadow(color: Colors.black.withValues(alpha: LT.dark ? 0.24 : 0.05), blurRadius: 3, offset: Offset(0, 1)),
+      ]),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          border: borderColor == null ? null : Border.all(color: borderColor!, width: 1.5),
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [
+            Color.alphaBlend(Colors.white.withValues(alpha: _sheen), LT.surface.withValues(alpha: LT.glass)),
+            LT.surface.withValues(alpha: LT.glass),
+            LT.surface.withValues(alpha: LT.glass + 0.08),
+          ], stops: const [0, 0.45, 1]),
+        ),
+        child: CustomPaint(
+          foregroundPainter: borderColor == null ? GlassRim(LT.radiusLg, dark: LT.dark) : null,
+          child: GlassTone(
+            tone: glassTone,
+            child: _inked(
+              radius,
+              LT.surface,
+              LT.surface.computeLuminance() < 0.2
+                  ? OnDark(child: DefaultTextStyle.merge(style: TextStyle(color: LT.onDark), child: IconTheme.merge(data: IconThemeData(color: LT.onDarkMuted), child: child)))
+                  : child,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _solidCard() => DecoratedBox(
-        // Black hero cards get a glossy sheen; pale tinted cards stay flat.
+  Widget _solidCard() {
+    // Black hero cards are smoked glass: a sheen and the same bright rim as
+    // the glass cards. Pale tinted cards stay flat.
+    final hero = color.computeLuminance() < 0.2;
+    return CustomPaint(
+      foregroundPainter: hero && borderColor == null ? GlassRim(LT.radiusLg, dark: true) : null,
+      child: DecoratedBox(
         position: DecorationPosition.foreground,
-        decoration: color.computeLuminance() < 0.2
+        decoration: hero
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(LT.radiusLg),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
                 gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.center, colors: [Colors.white.withValues(alpha: 0.10), Colors.white.withValues(alpha: 0)]),
               )
             : BoxDecoration(),
         child: _solidMaterial(),
-      );
+      ),
+    );
+  }
 
   Widget _solidMaterial() => DecoratedBox(
         decoration: BoxDecoration(
@@ -419,13 +454,79 @@ class ShadCard extends StatelessWidget {
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
-            onTap: onTap,
+            onTap: onTap == null
+                ? null
+                : () {
+                    Haptics.tap();
+                    onTap!();
+                  },
             splashColor: inkOn(on).splash,
             highlightColor: inkOn(on).highlight,
             child: Padding(padding: padding, child: content),
           ),
         ),
       );
+}
+
+/// The rim of a piece of glass, as on the Mac: light catching the top-left
+/// edge, fading along the sides and glinting again at the bottom-right. One
+/// rounded-rect stroke, cheap enough for every card.
+class GlassRim extends CustomPainter {
+  const GlassRim(this.radius, {required this.dark});
+
+  /// The corner radius; a stadium (pill) passes anything at least half its height.
+  final double radius;
+
+  /// Dark glass — dark mode, a black hero card or bar — catches less light.
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final box = Offset.zero & size;
+    final r = math.max(0.0, math.min(radius, size.shortestSide / 2) - 0.5);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(box.deflate(0.5), Radius.circular(r)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [for (final a in dark ? const [0.34, 0.12, 0.05, 0.20] : const [1.0, 0.65, 0.40, 0.85]) Colors.white.withValues(alpha: a)],
+          stops: const [0, 0.3, 0.7, 1],
+        ).createShader(box),
+    );
+  }
+
+  @override
+  bool shouldRepaint(GlassRim old) => old.radius != radius || old.dark != dark;
+}
+
+/// A glass card's shadow, drawn only outside the card: under see-through
+/// glass a whole shadow shows through and greys the card. Rounded rects, so
+/// the blur stays on the engine's fast path; painted once per card, not per
+/// scroll frame (list items are their own layers).
+class _ShadowOutside extends CustomPainter {
+  const _ShadowOutside(this.radius, this.shadows);
+  final double radius;
+  final List<BoxShadow> shadows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final card = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
+    canvas.save();
+    canvas.clipPath(Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect((Offset.zero & size).inflate(80))
+      ..addRRect(card));
+    for (final s in shadows) {
+      canvas.drawRRect(card.shift(s.offset).inflate(s.spreadRadius), s.toPaint());
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_ShadowOutside old) => old.radius != radius || !listEquals(old.shadows, shadows);
 }
 
 /// Sinks a little under the finger, so a tap is felt before anything opens.
@@ -733,7 +834,10 @@ class FieldButton extends StatelessWidget {
         color: LT.raised,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(LT.radius)),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            Haptics.tap();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(LT.radius),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -784,7 +888,10 @@ class RoundButton extends StatelessWidget {
           color: dark ? LT.button : LT.raised,
           shape: CircleBorder(),
           child: InkWell(
-            onTap: onTap,
+            onTap: () {
+              Haptics.tap();
+              onTap();
+            },
             customBorder: CircleBorder(),
             splashColor: inkOn(dark ? LT.button : LT.raised).splash,
             highlightColor: inkOn(dark ? LT.button : LT.raised).highlight,
@@ -816,6 +923,82 @@ String plainError(Object e) {
   return 'Something went wrong. Please try again.';
 }
 
+/// What went wrong, in the signal colour under a form. It shakes as it
+/// appears, with the error buzz, so a failed save is felt as well as read,
+/// and screen readers announce it at once.
+class ErrorLine extends StatelessWidget {
+  const ErrorLine(this.text, {super.key, this.padding = const EdgeInsets.fromLTRB(20, 12, 20, 0)});
+  final String text;
+  final EdgeInsetsGeometry padding;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: padding,
+        child: Semantics(
+          liveRegion: true,
+          child: Shake(trigger: text, child: Text(text, style: LT.small.copyWith(color: LT.signal))),
+        ),
+      );
+}
+
+/// Something did not work, said in a snack bar with the error buzz.
+void showProblem(ScaffoldMessengerState messenger, String text) {
+  Haptics.error();
+  messenger.showSnackBar(SnackBar(content: Text(text)));
+}
+
+/// Shakes its child side to side once — three swings, each smaller, like a
+/// Mac's password box after a wrong password — when it first appears and
+/// each time [trigger] changes, with the error buzz. When the phone asks for
+/// less motion it stays still; the buzz remains.
+class Shake extends StatefulWidget {
+  const Shake({super.key, required this.child, this.trigger, this.haptic = true});
+  final Widget child;
+  final Object? trigger;
+  final bool haptic;
+  @override
+  State<Shake> createState() => _ShakeState();
+}
+
+class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: Duration(milliseconds: 450));
+
+  @override
+  void initState() {
+    super.initState();
+    _play();
+  }
+
+  @override
+  void didUpdateWidget(Shake old) {
+    super.didUpdateWidget(old);
+    if (old.trigger != widget.trigger) _play();
+  }
+
+  void _play() {
+    if (widget.haptic) Haptics.error();
+    _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return widget.child;
+    return AnimatedBuilder(
+      animation: _c,
+      child: widget.child,
+      builder: (context, child) {
+        final t = _c.value;
+        return Transform.translate(offset: Offset(math.sin(t * math.pi * 6) * 9 * (1 - t), 0), child: child);
+      },
+    );
+  }
+}
+
 /// Swipe a row sideways to tick it done (or undo it); the row springs back
 /// and the tick changes. The checkbox inside still works for anyone who
 /// does not swipe.
@@ -844,7 +1027,7 @@ class SwipeToggle extends StatelessWidget {
       background: side(Alignment.centerLeft),
       secondaryBackground: side(Alignment.centerRight),
       confirmDismiss: (_) async {
-        HapticFeedback.mediumImpact();
+        Haptics.press();
         await onToggle(!done);
         return false;
       },
@@ -862,6 +1045,19 @@ abstract final class Photos {
   static const pills = 'assets/photos/pills.jpg';
   static const reading = 'assets/photos/reading.jpg';
   static const parent = 'assets/photos/parent.jpg';
+}
+
+/// Decodes the photos the main pages show, at the size [PhotoBanner] draws
+/// them, while the first page settles. The first visit to a page with a
+/// photo then draws it at once, instead of decoding it mid-transition.
+void precachePhotos(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2;
+  final w = (width * dpr).round().clamp(320, 1080);
+  for (final photo in [Photos.reading, Photos.report, Photos.pills, Photos.doctor]) {
+    // The same key as Image.asset(photo, cacheWidth: w), so the page finds it cached.
+    precacheImage(ResizeImage(AssetImage(photo), width: w), context, onError: (_, _) {});
+  }
 }
 
 /// The coffee-template opening screen: a full-bleed photo that fades into a
@@ -1023,7 +1219,7 @@ class _DonePainter extends CustomPainter {
 void celebrate(BuildContext context, String message) {
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
-  HapticFeedback.mediumImpact();
+  Haptics.success();
   late OverlayEntry entry;
   entry = OverlayEntry(builder: (_) => _Celebration(message: message, onDone: () => entry.remove()));
   overlay.insert(entry);
@@ -1104,7 +1300,6 @@ class Glass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rim = lightText ? Colors.white.withValues(alpha: 0.16) : Colors.white.withValues(alpha: LT.dark ? 0.10 : 0.55);
     // A rounded-rect clip (a stadium is one with a huge radius), not a path:
     // the glass is redrawn every frame anything scrolls beneath it.
     return ClipRRect(
@@ -1114,7 +1309,6 @@ class Glass extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: radius ?? BorderRadius.circular(999),
-            border: Border.all(color: rim),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -1126,20 +1320,14 @@ class Glass extends StatelessWidget {
               stops: const [0, 0.45, 1],
             ),
           ),
-          child: GlassTone(tone: tone, child: padding == null ? child : Padding(padding: padding!, child: child)),
+          child: CustomPaint(
+            foregroundPainter: GlassRim(radius?.topLeft.x ?? 999, dark: lightText || LT.dark),
+            child: GlassTone(tone: tone, child: padding == null ? child : Padding(padding: padding!, child: child)),
+          ),
         ),
       ),
     );
   }
-}
-
-/// Marks the solid colour text on a [Glass] is judged against.
-class GlassTone extends StatelessWidget {
-  const GlassTone({super.key, required this.tone, required this.child});
-  final Color tone;
-  final Widget child;
-  @override
-  Widget build(BuildContext context) => child;
 }
 
 /// The inner screens' bar: a round glass back button and, when there are

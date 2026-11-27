@@ -295,7 +295,7 @@ class MeScreen extends StatelessWidget {
               Text(sub, style: LT.small),
             ]),
           ),
-          Switch(value: value, onChanged: onChanged),
+          Switch(value: value, onChanged: withTick(onChanged)),
         ]),
       );
 

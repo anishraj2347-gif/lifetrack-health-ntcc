@@ -48,9 +48,9 @@ class _DataRightsScreenState extends State<DataRightsScreen> {
       await file.writeAsBytes(export.zip(password: password), flush: true);
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path, mimeType: 'application/zip')], subject: 'My LifeTrack records'));
     } on CustodyRefused catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      showProblem(messenger, e.message);
     } on Object catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Could not export. ${plainError(e)}')));
+      showProblem(messenger, 'Could not export. ${plainError(e)}');
     } finally {
       // share_plus has copied it into this app's private cache (cleared on the
       // next share), so this copy is not needed.
@@ -120,7 +120,7 @@ class _DataRightsScreenState extends State<DataRightsScreen> {
                   ),
                 ]),
               ),
-              Switch(value: _protect, onChanged: (v) => setState(() => _protect = v)),
+              Switch(value: _protect, onChanged: withTick((v) => setState(() => _protect = v))),
             ]),
           ),
           Padding(
@@ -179,7 +179,7 @@ class _DataRightsScreenState extends State<DataRightsScreen> {
       }
     } on CustodyRefused catch (e) {
       setState(() => _erasing = false);
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      showProblem(messenger, e.message);
       return;
     }
     if (!mounted) return;

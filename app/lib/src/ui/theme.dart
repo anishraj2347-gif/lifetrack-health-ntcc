@@ -116,15 +116,29 @@ abstract final class LT {
   static TextStyle get meta => TextStyle(fontFamily: body, fontSize: 12.5, height: 1.4, color: ink3);
   static TextStyle get data => TextStyle(fontFamily: mono, fontSize: 14.5, fontWeight: FontWeight.w600, color: ink, fontFeatures: [FontFeature.tabularFigures()]);
 
-  /// The colour wash behind every page: soft, warm blobs that are never a
-  /// health colour (no red, no green) and never lime.
+  /// The colour wash behind every page, like a Mac's desktop picture seen
+  /// through its glass: apricot, lilac and sky; umber, indigo and navy in dark
+  /// mode (27 Nov 2026 — the beige wash before it left the glass cards
+  /// looking plain white). Never a health colour (no red, no green) and never
+  /// lime; light enough (dark enough in dark mode) that the faintest text,
+  /// ink3, keeps 4.5:1 at the wash's strongest point (glass_test).
   static List<(Alignment, double, Color)> get washes => dark
-      ? [(Alignment(-1.1, -0.9), 1.1, Color(0xFF2A211B)), (Alignment(1.2, -0.2), 1.0, Color(0xFF241D18)), (Alignment(-0.4, 1.1), 1.2, Color(0xFF4A3628))]
-      : [(Alignment(-1.1, -0.9), 1.1, Color(0xFFF9F2ED)), (Alignment(1.2, -0.2), 1.0, Color(0xFFF5E9DF)), (Alignment(-0.4, 1.1), 1.2, Color(0xFFEDD6C8))];
+      ? [(Alignment(-1.1, -0.9), 1.1, Color(0xFF3A2618)), (Alignment(1.2, -0.1), 1.0, Color(0xFF2A2346)), (Alignment(-0.3, 1.1), 1.2, Color(0xFF172A40))]
+      : [(Alignment(-1.1, -0.9), 1.1, Color(0xFFF7D9C4)), (Alignment(1.2, -0.1), 1.0, Color(0xFFDCD3F5)), (Alignment(-0.3, 1.1), 1.2, Color(0xFFCFE2F6))];
+
+  /// How strongly a wash colour is painted at its centre, over [ground].
+  static const washStrength = 0.85;
 
   /// What a glass card can have behind it at worst, for contrast: the
   /// darkest wash in light mode (dark text), the lightest in dark mode.
-  static Color get washExtreme => _p(0xFFEDD6C8, 0xFF4A3628);
+  static Color get washExtreme => _p(0xFFDCD3F5, 0xFF3A2618);
+
+  /// The wash at its strongest point, as painted: text that sits straight
+  /// on the page is judged against this (see [Backdrop]).
+  static Color get washPeak => Color.alphaBlend(washExtreme.withValues(alpha: washStrength), ground);
+
+  /// How much of a glass card is card; the rest is the colour behind it.
+  static const glass = 0.50;
 
   /// A soft tint per record type, from the same family as the page wash.
   /// It only tells types apart — never a health status (no red, no green).
@@ -259,9 +273,21 @@ class Backdrop extends StatelessWidget {
         color: LT.ground,
         child: Stack(fit: StackFit.passthrough, children: [
           Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _WashPainter(LT.washes)))),
-          child,
+          // Text straight on the page may land on the wash's strongest point.
+          GlassTone(tone: LT.washPeak, child: child),
         ]),
       );
+}
+
+/// Marks the solid colour that text on see-through glass, or on the page's
+/// wash, is judged against: the worst case of whatever may be behind it.
+/// contrast_test reads it; it draws nothing.
+class GlassTone extends StatelessWidget {
+  const GlassTone({super.key, required this.tone, required this.child});
+  final Color tone;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => child;
 }
 
 class _WashPainter extends CustomPainter {
@@ -275,7 +301,7 @@ class _WashPainter extends CustomPainter {
       canvas.drawCircle(
         centre,
         r * scale,
-        Paint()..shader = RadialGradient(colors: [c.withValues(alpha: 0.85), c.withValues(alpha: 0)]).createShader(Rect.fromCircle(center: centre, radius: r * scale)),
+        Paint()..shader = RadialGradient(colors: [c.withValues(alpha: LT.washStrength), c.withValues(alpha: 0)]).createShader(Rect.fromCircle(center: centre, radius: r * scale)),
       );
     }
   }

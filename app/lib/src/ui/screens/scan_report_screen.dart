@@ -443,7 +443,7 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
           padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
           child: SlabButton(_converting ? 'Opening the PDF…' : 'From files — PDF or photo', icon: LucideIcons.fileText, variant: ButtonVariant.outline, onPressed: _converting ? null : _file),
         ),
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 10, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 10, 20, 0)),
         SizedBox(height: 16),
         if (_pages.isEmpty)
           Note('Tip: lay the page flat in good light and fill the frame, one photo per page. You can also share a report to LifeTrack straight from WhatsApp or your email.', icon: LucideIcons.lightbulb)
@@ -627,7 +627,7 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
       ),
       if (_kind == RecordKind.report) ..._valuesSection(),
       if (_kind == RecordKind.prescription) ..._medicinesSection(),
-      if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+      if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 20, 16, 6),
         child: SlabButton(
@@ -690,7 +690,7 @@ class _ScanReportScreenState extends State<ScanReportScreen> {
         dense: true,
         controlAffinity: ListTileControlAffinity.leading,
         title: Text('Matches the photo', style: LT.label.copyWith(fontSize: 14)),
-        onChanged: (v) => setState(() => c.done = v ?? false),
+        onChanged: withTick((v) => setState(() => c.done = v ?? false)),
       );
 
   List<Widget> _valuesSection() => [

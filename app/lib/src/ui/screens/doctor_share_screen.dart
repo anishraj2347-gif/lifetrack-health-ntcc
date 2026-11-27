@@ -132,7 +132,7 @@ class _DoctorShareScreenState extends State<DoctorShareScreen> {
           ),
         SizedBox(height: 12),
         if (_error != null)
-          Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+          ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
         LabeledField(
           label: 'Or paste the code',
           child: Padding(
@@ -207,7 +207,7 @@ class _DoctorShareScreenState extends State<DoctorShareScreen> {
         for (final r in active)
           CheckboxListTile(
             value: _stillTaking.contains(r.id),
-            onChanged: (v) => setState(() => v! ? _stillTaking.add(r.id) : _stillTaking.remove(r.id)),
+            onChanged: withTick((v) => setState(() => v! ? _stillTaking.add(r.id) : _stillTaking.remove(r.id))),
             title: Text('${r.title}${r.dose == null ? '' : ' · ${r.dose!.display}'}', style: LT.label.copyWith(fontSize: 15)),
             subtitle: Text(r.doctor ?? '', style: LT.small),
           ),
@@ -226,7 +226,7 @@ class _DoctorShareScreenState extends State<DoctorShareScreen> {
         ),
       Note('Access ends after ${hoursLabel(_hours)}; you can change the time or end it any time. Encrypted so only this doctor\'s device can open it. Personal notes are never included. The doctor keeps their own consult note.',
           icon: LucideIcons.lock),
-      if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+      if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 20, 16, 28),
         child: SlabButton(
@@ -270,7 +270,7 @@ class _DoctorShareScreenState extends State<DoctorShareScreen> {
             try {
               msg.showSnackBar(SnackBar(content: Text(endAccessMessage(await AppScope.of(context).endAccess(r.grant), r.doctor.name, r.grant.expiresAt))));
             } on Object catch (e) {
-              msg.showSnackBar(SnackBar(content: Text('Access was ended on this phone, but something went wrong. ${plainError(e)}')));
+              showProblem(msg, 'Access was ended on this phone, but something went wrong. ${plainError(e)}');
             }
             if (!mounted) return;
             AppScope.changed(context);

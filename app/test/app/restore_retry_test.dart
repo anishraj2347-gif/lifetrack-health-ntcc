@@ -94,7 +94,10 @@ void main() {
     expect(s.backupAccount, kit.account);
   }
 
-  test('killed at any write, the app opens to a retry that brings everything back', () async {
+  // A full restore for every write in one (each with a key derivation): about
+  // 25 s alone, past the default 30 s when the whole suite runs in parallel —
+  // and build_apk.sh stops on a failed test.
+  test('killed at any write, the app opens to a retry that brings everything back', timeout: Timeout(Duration(minutes: 2)), () async {
     // Counts the writes of a clean restore, to walk every point in it.
     final counting = DyingStore(InMemoryByteStore(), dieAfter: 1 << 30);
     await (await open(counting)).restoreFromBackup(account: kit.account, password: kit.password);

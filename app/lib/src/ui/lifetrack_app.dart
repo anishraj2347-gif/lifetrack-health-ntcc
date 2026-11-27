@@ -144,6 +144,8 @@ class _HomeShellState extends State<HomeShell> {
     IncomingFiles.listen();
     IncomingFiles.arrivals.addListener(_incoming);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // While the first page settles, so no later page decodes a photo mid-switch.
+      if (mounted) precachePhotos(context);
       _incoming();
       _services = context.getInheritedWidgetOfExactType<AppScope>()!.services..backupProblem.addListener(_backupChanged);
       _backupChanged();
@@ -292,7 +294,7 @@ class _HomeShellState extends State<HomeShell> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              if (i != _tab) HapticFeedback.selectionClick();
+              if (i != _tab) Haptics.select();
               setState(() => _tab = i);
             },
             // The selected label sits on the lime pill.

@@ -134,7 +134,7 @@ class _DigiLockerStepState extends State<DigiLockerStep> {
             SlabButton('Cancel', variant: ButtonVariant.ghost, onPressed: () => _answer(null)),
           ]),
         ),
-      if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+      if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 8, 20, 0)),
     ]);
   }
 }

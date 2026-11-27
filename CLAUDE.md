@@ -212,6 +212,13 @@ copy predate the claim fixes; the app's wording is authoritative).
   "selected / now" only — never a health status. Signal is purple #7E22CE and trace teal #115E59
   (1.40.1) so every pair stays ≥ 25 ΔE apart for every colour vision (`cvd_test.dart`).
   Do not add the `shadcn_ui` package: it pulls in `http` and `extended_image` (network-capable).
+- **Glass and touch** (user, 27 Nov 2026, patient 1.49.0): the page wash is apricot/lilac/sky (dark: umber/indigo/
+  navy) and cards are see-through glass over it, Mac-style (`ShadCard`, `LT.glass`, `GlassRim`, shadow only outside
+  the card). No live blur on cards (`glass_test.dart`): only bars and pills over scrolling content blur (`Glass`, under
+  the one `BackdropGroup`). Text on glass or on the page is judged against `GlassTone`, the worst case behind it; keep
+  ink3 ≥ 4.5:1 on `LT.washPeak`. Vibrations only through `Haptics` (select / tap / press / success / warning / error /
+  alert), never `HapticFeedback` directly; switches and tick boxes take `withTick`. An error under a form is an
+  `ErrorLine` (shakes, buzzes, announced); a failure in a snack bar goes through `showProblem`.
 - Build the APK with `scripts/build_apk.sh` (obfuscated release). Since 12 Oct 2026 it builds for
   the home-Wi-Fi server (`scripts/run_server_lan.sh`, which must be running; the laptop's address is
   built in, so rebuild if it changes) with demo tools off; `LT_SERVER=usb` / `LT_DEMO_TOOLS=true`

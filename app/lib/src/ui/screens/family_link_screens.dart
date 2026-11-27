@@ -143,7 +143,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
             tryHarder: true,
           ),
         ),
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
         LabeledField(label: 'Or paste the code', child: TextField(controller: _paste, onChanged: (_) => setState(() {}))),
         Padding(
           padding: EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -165,7 +165,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
             : 'Nothing will be shared — you will just be linked. You can choose later.',
         icon: LucideIcons.shieldCheck,
       ),
-      if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+      if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
         child: SlabButton('Link with $from', icon: LucideIcons.link, onPressed: _busy ? null : _join),
@@ -182,7 +182,7 @@ Widget _tick(String title, String sub, bool value, ValueChanged<bool> onChanged)
       onTap: () => onChanged(!value),
       padding: EdgeInsets.fromLTRB(8, 6, 12, 6),
       child: Row(children: [
-        Checkbox(value: value, onChanged: (v) => onChanged(v ?? false)),
+        Checkbox(value: value, onChanged: withTick((v) => onChanged(v ?? false))),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title, style: LT.label),
@@ -263,7 +263,7 @@ class _LinkedAdultScreenState extends State<LinkedAdultScreen> {
     try {
       await f();
     } on Object catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(plainError(e))));
+      if (mounted) showProblem(ScaffoldMessenger.of(context), plainError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

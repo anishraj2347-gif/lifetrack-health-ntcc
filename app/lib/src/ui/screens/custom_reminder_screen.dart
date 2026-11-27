@@ -205,7 +205,7 @@ class _CustomReminderScreenState extends State<CustomReminderScreen> {
               if (_end != null) IconButton(tooltip: 'No end date', onPressed: () => setState(() => _end = null), icon: Icon(LucideIcons.x, size: 18)),
             ]),
           ),
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 0, 20, 12), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 0, 20, 12)),
         Padding(
           padding: EdgeInsets.fromLTRB(20, 4, 20, 10),
           child: SlabButton(editing ? 'Save changes' : 'Save reminder', icon: LucideIcons.check, onPressed: _saving ? null : _save),

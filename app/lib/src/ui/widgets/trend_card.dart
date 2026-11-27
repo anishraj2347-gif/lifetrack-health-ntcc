@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../ai/plane_a/reference_ranges.dart' show analyteName;
@@ -81,7 +80,7 @@ class _TrendCardState extends State<TrendCard> {
   void _pick(double dx, double width, int n) {
     final i = (dx / width * n).floor().clamp(0, n - 1);
     if (i != _picked) {
-      HapticFeedback.selectionClick();
+      Haptics.select();
       setState(() => _picked = i);
     }
   }

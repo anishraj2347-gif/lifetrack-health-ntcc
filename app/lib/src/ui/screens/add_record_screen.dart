@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../ai/plane_a/reference_ranges.dart' show analyteNames;
@@ -320,7 +319,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
             ),
           ],
           if (_kind == RecordKind.note) Note('Personal notes stay on this phone. They are never included in a backup unless you turn that on.', icon: LucideIcons.smartphone),
-          if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+          if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 8, 20, 0)),
           Padding(padding: EdgeInsets.fromLTRB(16, 20, 16, 28), child: SlabButton(_saving ? 'Saving…' : 'Save record', icon: LucideIcons.check, onPressed: _saving ? null : _save)),
         ]);
 }
@@ -369,7 +368,7 @@ class _DoseStepper extends StatelessWidget {
           onPressed: onTap == null
               ? null
               : () {
-                  HapticFeedback.selectionClick();
+                  Haptics.select();
                   onTap();
                 },
           icon: Icon(i, size: 18),

@@ -134,7 +134,7 @@ class _AbhaScreenState extends State<AbhaScreen> {
             decoration: InputDecoration(hintText: 'e.g. anjali.sharma@abdm'),
           ),
         ),
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 4, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 4, 20, 0)),
         Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 6),
           child: SlabButton(existing == null ? 'Add ABHA' : 'Save', icon: LucideIcons.check, onPressed: Abha.parseNumber(_number.text) == null ? null : _save),

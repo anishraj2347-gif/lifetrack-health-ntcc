@@ -64,7 +64,7 @@ class _BackupScreenState extends State<BackupScreen> {
           ..._off(s)
         else
           ..._on(s),
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 12, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 12, 20, 0)),
         SizedBox(height: 28),
       ]),
     );
@@ -88,7 +88,7 @@ class _BackupScreenState extends State<BackupScreen> {
           onTap: () => setState(() => _notes = !_notes),
           padding: EdgeInsets.fromLTRB(8, 6, 12, 6),
           child: Row(children: [
-            Checkbox(value: _notes, onChanged: (v) => setState(() => _notes = v ?? false)),
+            Checkbox(value: _notes, onChanged: withTick((v) => setState(() => _notes = v ?? false))),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Include personal notes and home readings', style: LT.label),
@@ -146,7 +146,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 Text('Otherwise they stay on this phone only', style: LT.small),
               ]),
             ),
-            Switch(value: s.backupIncludesNotes, onChanged: _busy ? null : (v) => _run(() => s.setBackupIncludesNotes(v))),
+            Switch(value: s.backupIncludesNotes, onChanged: _busy ? null : withTick((v) => _run(() => s.setBackupIncludesNotes(v)))),
           ]),
         ),
         Padding(
@@ -242,7 +242,7 @@ class _RecoveryKitScreenState extends State<RecoveryKitScreen> {
             onTap: () => setState(() => _saved = !_saved),
             padding: EdgeInsets.fromLTRB(8, 6, 12, 6),
             child: Row(children: [
-              Checkbox(value: _saved, onChanged: (v) => setState(() => _saved = v ?? false)),
+              Checkbox(value: _saved, onChanged: withTick((v) => setState(() => _saved = v ?? false))),
               Expanded(child: Text('I have saved the account code and password somewhere other than this phone.', style: LT.label)),
             ]),
           ),
@@ -346,7 +346,7 @@ class _RestoreScreenState extends State<RestoreScreen> {
           LabeledField(label: 'First recovery code', child: TextField(controller: _code1, autocorrect: false, onChanged: (_) => setState(() {}))),
           LabeledField(label: 'Second recovery code', child: TextField(controller: _code2, autocorrect: false, onChanged: (_) => setState(() {}))),
         ],
-        if (_error != null) Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 0), child: Text(_error!, style: LT.small.copyWith(color: LT.signal))),
+        if (_error != null) ErrorLine(_error!, padding: EdgeInsets.fromLTRB(20, 8, 20, 0)),
         Padding(
           padding: EdgeInsets.fromLTRB(16, 20, 16, 28),
           child: SlabButton(_busy ? 'Decrypting…' : 'Restore', icon: LucideIcons.cloudDownload, onPressed: ready && !_busy ? _restore : null),

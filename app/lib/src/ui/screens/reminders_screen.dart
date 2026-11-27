@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/app_services.dart';
@@ -69,7 +68,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
                   Text('Medicines from the dose on each current prescription (stops when a course ends), children\'s vaccinations, and the reminders you make — for everyone on this phone.', style: LT.small),
                 ]),
               ),
-              Switch(value: st.on, onChanged: (v) => _set(st.copyWith(on: v))),
+              Switch(value: st.on, onChanged: withTick((v) => _set(st.copyWith(on: v)))),
             ]),
           ),
           if (_note != null) Padding(padding: EdgeInsets.fromLTRB(20, 4, 20, 8), child: Text(_note!, style: LT.small.copyWith(color: LT.signal))),
@@ -100,7 +99,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
                   Text('Off: the notification only says it is time for your medicines — anyone who sees your lock screen learns nothing more.', style: LT.small),
                 ]),
               ),
-              Switch(value: st.showNames, onChanged: (v) => _set(st.copyWith(showNames: v))),
+              Switch(value: st.showNames, onChanged: withTick((v) => _set(st.copyWith(showNames: v)))),
             ]),
           ),
           if (st.on) ...[
@@ -244,7 +243,7 @@ class TodaysMedicines extends StatelessWidget {
                   },
                 ),
                 onChanged: (v) {
-                  HapticFeedback.lightImpact();
+                  Haptics.tap();
                   tickAndMaybeCelebrate(context, () => s.markTaken(slot, r.id, v ?? false), v ?? false);
                 },
               ),
@@ -349,7 +348,7 @@ class RemindersTab extends StatelessWidget {
                         onPressed: () => _open(context, c),
                       ),
                       onChanged: (v) {
-                        HapticFeedback.lightImpact();
+                        Haptics.tap();
                         tickAndMaybeCelebrate(context, () => s.markCustomDone(c, h, m, v ?? false), v ?? false);
                       },
                     ),

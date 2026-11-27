@@ -10,12 +10,20 @@ import 'parts.dart';
 
 /// What the danger-level check found, shown right after a save, in place of
 /// any "saved" celebration. Renders the Insights as they were emitted (#8)
-/// and cannot be tapped away by accident.
-Future<void> showCriticalPrompt(BuildContext context, InsightRun run) => showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (c) => _CriticalPrompt(run: run, onDone: () => Navigator.of(c).pop()),
-    );
+/// and cannot be tapped away by accident. Felt as well as seen: the
+/// strongest buzz the app makes for a danger level, a softer one otherwise.
+Future<void> showCriticalPrompt(BuildContext context, InsightRun run) {
+  if (run.insights.any((i) => i.severity == Severity.urgentCare)) {
+    Haptics.alert();
+  } else {
+    Haptics.warning();
+  }
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (c) => _CriticalPrompt(run: run, onDone: () => Navigator.of(c).pop()),
+  );
+}
 
 class _CriticalPrompt extends StatelessWidget {
   const _CriticalPrompt({required this.run, required this.onDone});
@@ -52,7 +60,7 @@ class _CriticalPrompt extends StatelessWidget {
             child: SlabButton('Call 108', icon: LucideIcons.phoneCall, onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
               final ok = await launchUrl(Uri(scheme: 'tel', path: '108'));
-              if (!ok) messenger.showSnackBar(SnackBar(content: Text('Could not open the dialer. The number is 108.')));
+              if (!ok) showProblem(messenger, 'Could not open the dialer. The number is 108.');
             }),
           ),
         Padding(

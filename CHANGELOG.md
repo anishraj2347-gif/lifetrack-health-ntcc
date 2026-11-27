@@ -58,6 +58,27 @@ always goes up (Android refuses to install a lower one).
 
 ## Patient app
 
+### 1.49.0 (27 Nov 2026)
+- **Glass cards, as on a Mac.** The page behind every screen is a soft apricot, lilac and sky wash (umber, indigo and
+  navy in dark mode) instead of beige, and every card is clearer glass over it: half see-through, so each card takes on
+  the colour behind it as it scrolls, with a bright rim where light catches the top-left edge, a glint at the
+  bottom-right, and a shadow drawn only outside the card (under see-through glass a whole shadow greyed it). Black hero
+  cards and the glass bars get the same rim. The faintest text keeps 4.5:1 on the strongest part of the wash, and the
+  contrast test now judges text that sits straight on the page against that point, not the plain page colour.
+- **The phone answers your touch.** One set of vibrations for the whole app (`Haptics`), by what the moment means: a
+  light tap when a card, row or round button opens; a tick when a switch, tick box, chip, segment or tab changes; a
+  firmer press for the main buttons; a success buzz for "All done for today"; an error buzz when something fails; and
+  the strongest buzz the app makes when a saved reading is at a danger level. They follow the phone's own vibration
+  setting, and the app still asks for no vibrate permission.
+- **Errors shake.** The message under a form that says what went wrong shakes side to side as it appears, like a Mac's
+  password box, with the error buzz, and screen readers announce it at once. When the phone asks for less motion it
+  stays still; the buzz remains. Failures shown in a snack bar buzz too.
+- **Faster first visit to a page with a photo.** The photos are decoded at the size they are drawn while the first page
+  settles, not the first time a tab with a photo opens. Cards get no live blur: the wash behind them is already soft,
+  so a blur would cost a GPU pass per card on every frame for no visible change (`glass_test.dart` keeps it so).
+- The interrupted-restore test (about 25 s alone) has a 2-minute limit: in a full parallel run it passed the default
+  30 s, and `build_apk.sh` stops on any failed test.
+
 ### 1.48.2 (6 Nov 2026)
 - **The erasure entry says what happened to the backup.** It claimed "backup deleted" even when the server could not
   be reached, when a child's profile was erased, and when there was no backup. The patient is now told if the backup
