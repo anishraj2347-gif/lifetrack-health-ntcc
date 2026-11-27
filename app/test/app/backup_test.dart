@@ -103,9 +103,48 @@ void main() {
     expect(server.isEmpty, isTrue);
   });
 
+  group('the erasure entry says what happened to the backup', () {
+    test('deleted', () async {
+      final s = await phone(4);
+      final me = await s.createProfile(name: 'Solo', dob: DateTime(1990), sex: Sex.male);
+      await s.setUpBackup();
+      await s.eraseProfile();
+      expect(s.erasureLeftBackup, isFalse);
+      expect(s.audit.entriesFor(me.id).single.detail, 'records, grants, Emergency ID and backup deleted');
+    });
+
+    test('server not reached: the entry and the app say it stayed', () async {
+      server = _DeleteFails();
+      final s = await phone(4);
+      final me = await s.createProfile(name: 'Solo', dob: DateTime(1990), sex: Sex.male);
+      await s.setUpBackup();
+      await s.eraseProfile();
+      expect(server.isEmpty, isFalse);
+      expect(s.erasureLeftBackup, isTrue);
+      expect(s.audit.entriesFor(me.id).single.detail, 'records, grants and Emergency ID deleted; backup NOT deleted, server not reached');
+    });
+
+    test("a child's erasure does not claim the family's backup was deleted", () async {
+      final s = await phone(4);
+      await s.createProfile(name: 'Solo', dob: DateTime(1990), sex: Sex.male);
+      final child = await s.addChild(name: 'Aarav', dob: DateTime(2019), sex: Sex.male, relation: 'son');
+      await s.setUpBackup();
+      await s.switchTo(child.id);
+      await s.eraseProfile();
+      await s.settle();
+      expect(server.isEmpty, isFalse);
+      expect(s.audit.entriesFor(child.id).single.detail, 'records, grants and Emergency ID deleted; leaves the backup at its next update');
+    });
+  });
+
   test('passwords are typed forgivingly', () {
     expect(AppServices.normalisePassword('k7qm2 xpa9d-hr4tw b63ne'), 'K7QM2-XPA9D-HR4TW-B63NE');
     expect(AppServices.normalisePassword('KOQM2'), 'K0QM2', reason: 'O is read as zero');
     expect(AppServices.normaliseAccount('lt 7kqm2 xpa9d'), 'LT-7KQM2-XPA9D');
   });
+}
+
+class _DeleteFails extends InMemoryRemoteVaultStore {
+  @override
+  Future<void> delete(String account, List<int> verifier) async => throw StateError('server not reached');
 }

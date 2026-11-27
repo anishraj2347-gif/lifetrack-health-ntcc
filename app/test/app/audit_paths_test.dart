@@ -83,11 +83,11 @@ void main() {
       expect(s.audit.entriesFor(id), hasLength(1), reason: 'the erasure stays the only entry');
     });
 
-    test('with no share there is nothing to tell, and the entry reads as before', () async {
+    test('with no share there is nothing to tell, and with no backup none is claimed', () async {
       final s = await withProfile(phone(), 'Anjali Sharma');
       final id = s.selfPatientId!;
       expect(await s.eraseProfile(), 0);
-      expect(s.audit.entriesFor(id).single.detail, 'records, grants, Emergency ID and backup deleted');
+      expect(s.audit.entriesFor(id).single.detail, 'records, grants and Emergency ID deleted');
     });
 
     test("erasing a child ends only the child's shares", () async {

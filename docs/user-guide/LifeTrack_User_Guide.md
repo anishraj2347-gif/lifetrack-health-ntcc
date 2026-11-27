@@ -1,6 +1,6 @@
 # LifeTrack Health — User Guide
 
-For the patient app, version 1.42.2 (November 2026).
+For the patient app, version 1.48.2 (November 2026). Most pictures are from version 1.42.
 
 LifeTrack keeps your family's health records on your own phone: prescriptions, lab reports,
 scans, vaccinations, home readings and an Emergency ID. You decide who else sees them, and for
@@ -68,6 +68,10 @@ can use it to ask you for access. It always starts with 1, so it can never be mi
 Aadhaar number. On the server, the ID points only to a mailbox for messages to you — not to your
 name or records.
 
+If you lost your ID because you reinstalled without a backup, verify yourself again. The app first
+offers your backup, then offers **Move my ID** to this phone. It does this only if you choose it,
+and only straight after the identity check. It takes the ID from any other phone that held it.
+
 ---
 
 ## 2. The five tabs
@@ -110,6 +114,18 @@ Tap the **+** button on **Records**.
 Choose a prescription, report or note and fill in the fields. For a prescription, enter the
 dose for morning, afternoon and night and how many days to take it: reminders come from this.
 
+For a medicine taken weekly or in any other way, choose **Something else · weekly or other** and
+write the dose as prescribed. It is kept as you wrote it, and it gets no automatic reminder.
+
+**The app never fills in a dose.** If a scanned prescription has no printed dose, you must say how
+the medicine is taken.
+
+### Allergies and conditions
+
+Enter these under **Me → Allergies and conditions**. The list feeds your Emergency ID and what a
+doctor sees. If you have no allergies, choose **No known allergies**: an empty list shows as
+"not recorded", which is not the same thing.
+
 ### Results over time
 
 On **Records**, tap any test to see every result for it, with the lab, the sample date and the
@@ -147,6 +163,18 @@ discuss with your doctor soon". It never tells you what illness you have or pred
   there was no range, or the range does not apply (for example, adult ranges are never applied
   to a child, or in pregnancy where it changes them). "Not checked" does **not** mean "normal".
 - Every read the insights make is written in the access log.
+
+### Urgent prompts
+
+Separately from Insights, and even when they are off, every lab value and home reading is checked
+against danger limits when you save it. If a value crosses a limit, the app shows a prompt, with a
+**Call 108** button when it asks you to seek care now.
+
+- A prompt is a reason to contact a doctor. It is not a diagnosis.
+- **No prompt does not mean you are fine.** Only some tests are checked, and a value the app cannot
+  judge is shown as "not checked".
+- The limits are commonly cited figures that no doctor has reviewed yet. This is a prototype: if
+  you feel unwell, get help whatever the app shows.
 
 ---
 
@@ -190,6 +218,10 @@ Under **Share → Who has access now** you can, for any live share:
 
 - **Change how long** — longer or shorter, counted from now, up to 2 days;
 - **End access** — the doctor's copy of the shared records closes.
+
+If the server cannot be reached, access still ends on your phone, and the app says the doctor has
+not been told yet. What they already received stays open until they are told, which the app keeps
+trying to do, or until their access runs out.
 
 Shared records close when access ends. The doctor still keeps their own consultation note and any
 prescription they wrote, and LifeTrack cannot stop someone photographing a screen.
@@ -314,8 +346,13 @@ from this phone, and their LifeTrack ID from the server. Erasing **your own** pr
 deletes your backup. Linked adults are told to delete what this phone shared with them. It
 cannot be undone.
 
-If the server cannot be reached at that moment, the records are still erased from the phone, but
-the LifeTrack ID stays on the server, and a linked adult keeps their copy until they unlink.
+If the server cannot be reached at that moment, the records are still erased from the phone. The
+LifeTrack ID is deleted when the server is back, and doctors are told then. A linked adult keeps
+their copy until they unlink.
+
+**Your backup is different.** If the server cannot be reached when you erase your own profile, the
+backup stays on the server and the app tells you. To remove it later, restore it with your account
+code and password, then turn backup off. Keep your recovery kit until you have done this.
 
 ---
 
@@ -341,6 +378,8 @@ the LifeTrack ID stays on the server, and a linked adult keeps their copy until 
 | A reminder did not appear | Check that notifications are allowed for LifeTrack in the phone's settings, and that the prescription has doses and days filled in. |
 | Restore says the password is wrong | Type it again; case, spaces and dashes do not matter. After ten wrong tries, wait an hour, or use two recovery codes. |
 | I lost my phone and never made a backup | The records cannot be brought back. Make a backup on your next phone. |
+| A restore stopped partway | Open the app again. The first screen offers to try again with your account code filled in. |
+| The app says a backup failed | Your records are safe on the phone. The app keeps trying; check that the server is running and you are on the same Wi-Fi. |
 
 ---
 

@@ -1845,10 +1845,15 @@ class AppServices {
 
   // ---- erasure (DPDP §12) -------------------------------------------------
 
+  /// True after [eraseProfile] if the owner's backup is still on the server
+  /// because the server could not be reached.
+  bool erasureLeftBackup = false;
+
   /// Deletes this profile's records, grants, Emergency ID and backup. The
   /// erasure itself stays as the only entry in the log. Live shares end first,
   /// so a doctor does not keep access until expiry. Works offline; returns how
-  /// many doctors' devices are still to be told.
+  /// many doctors' devices are still to be told. [erasureLeftBackup] says
+  /// whether the backup could not be deleted.
   Future<int> eraseProfile() async {
     final id = currentPatientId!;
     if (id == selfPatientId && familyOnPhone().length > 1) {
@@ -1857,6 +1862,8 @@ class AppServices {
       throw const CustodyRefused('Remove the other family profiles on this phone first.');
     }
     final at = clock();
+    erasureLeftBackup = false;
+    final hadBackup = backupAccount != null;
     await _quiesce();
     var ended = 0, notTold = 0;
     for (final g in consent.activeGrantsFor(id, at)) {
@@ -1899,15 +1906,25 @@ class AppServices {
       try {
         await turnOffBackup();
       } on Object {
+        // The account is forgotten with the profile, so this phone cannot try
+        // again. The patient is told, and the log says what really happened.
+        erasureLeftBackup = hadBackup;
         _backup = {};
         await _saveBackup();
       }
     }
+    final backup = id != selfPatientId
+        ? (hadBackup ? 'records, grants and Emergency ID deleted; leaves the backup at its next update' : 'records, grants and Emergency ID deleted')
+        : erasureLeftBackup
+            ? 'records, grants and Emergency ID deleted; backup NOT deleted, server not reached'
+            : hadBackup
+                ? 'records, grants, Emergency ID and backup deleted'
+                : 'records, grants and Emergency ID deleted';
     // The entries that named those shares go with the rest, so this one says it.
     final doctors = ended == 0 ? '' : '; access ended for $ended doctor${ended == 1 ? '' : 's'}${notTold == 0 ? '' : ', $notTold not told yet'}';
     await audit.eraseFor(
       id,
-      AuditEntry(at: at, actorId: 'patient:$id', patientId: id, action: AuditAction.erasure, detail: 'records, grants, Emergency ID and backup deleted$doctors'),
+      AuditEntry(at: at, actorId: 'patient:$id', patientId: id, action: AuditAction.erasure, detail: '$backup$doctors'),
     );
     if (id != selfPatientId && selfPatientId != null) {
       settings['currentPatientId'] = selfPatientId;

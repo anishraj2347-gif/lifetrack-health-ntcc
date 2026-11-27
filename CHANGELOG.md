@@ -58,6 +58,11 @@ always goes up (Android refuses to install a lower one).
 
 ## Patient app
 
+### 1.48.2 (6 Nov 2026)
+- **The erasure entry says what happened to the backup.** It claimed "backup deleted" even when the server could not
+  be reached, when a child's profile was erased, and when there was no backup. The patient is now told if the backup
+  stayed on the server, and how to remove it.
+
 ### 1.48.1 (6 Nov 2026)
 - No change in the app: the release build now runs the app's analysis and tests first (see Server and laptop).
 
